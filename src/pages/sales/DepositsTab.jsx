@@ -99,7 +99,8 @@ export default function DepositsTab() {
             <tr>
               <th>Student</th>
               <th>Organization</th>
-              <th style={{ width: 120 }}>Amount</th>
+              <th style={{ width: 140 }}>Amount</th>
+              <th style={{ width: 80 }}>Proof</th>
               <th style={{ width: 120 }}>Submitted</th>
               <th style={{ width: 100 }}>Status</th>
               <th style={{ width: 220 }}>Actions</th>
@@ -108,12 +109,12 @@ export default function DepositsTab() {
           <tbody>
             {loading ? (
               Array.from({ length: 4 }).map((_, i) => (
-                <tr key={i}>{[1,2,3,4,5,6].map(j => (
+                <tr key={i}>{[1,2,3,4,5,6,7].map(j => (
                   <td key={j}><div className="skeleton" style={{ height: 16, width: '70%' }} /></td>
                 ))}</tr>
               ))
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>No deposits found</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>No deposits found</td></tr>
             ) : (
               filtered.map(deposit => (
                 <>
@@ -125,8 +126,24 @@ export default function DepositsTab() {
                     <td style={{ fontSize: '0.875rem' }}>{deposit.org_name}</td>
                     <td>
                       <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>
-                        ¥{Number(deposit.amount).toLocaleString()}
+                        {Number(deposit.amount).toLocaleString()} {deposit.currency || 'CAD'}
                       </span>
+                    </td>
+                    <td>
+                      {deposit.proof_url ? (
+                        <a
+                          href={deposit.proof_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="View proof of payment"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.8rem', color: 'var(--accent-text)', fontWeight: 600, textDecoration: 'none' }}
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                          View
+                        </a>
+                      ) : (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>—</span>
+                      )}
                     </td>
                     <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{timeAgo(deposit.created_at)}</td>
                     <td><StatusPill status={deposit.status} /></td>
@@ -160,7 +177,7 @@ export default function DepositsTab() {
                   {/* Inline reject reason */}
                   {rejectId === deposit.deposit_id && (
                     <tr key={`${deposit.deposit_id}-reject`} style={{ background: 'var(--status-urgent-bg)' }}>
-                      <td colSpan={6} style={{ padding: 'var(--space-4) var(--space-5)' }}>
+                      <td colSpan={7} style={{ padding: 'var(--space-4) var(--space-5)' }}>
                         <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'flex-start' }}>
                           <div style={{ flex: 1 }}>
                             <label style={{ textTransform: 'none', fontSize: '0.8rem', fontWeight: 600, color: 'var(--status-urgent)', marginBottom: 6 }}>
