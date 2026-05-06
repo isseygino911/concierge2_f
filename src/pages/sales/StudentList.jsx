@@ -96,7 +96,7 @@ export default function StudentList() {
                       </div>
                       <div>
                         <div style={{ fontWeight: 500 }}>{student.first_name} {student.last_name}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{student.student_id}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{student.external_student_id}</div>
                       </div>
                     </div>
                   </td>
