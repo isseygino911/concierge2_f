@@ -85,6 +85,80 @@ function timeFromNow(dateStr) {
   return `${d}d left`;
 }
 
+function InvitationRow({ inv }) {
+  const [copied, setCopied] = useState(false);
+
+  const buildLink = () => {
+    const params = new URLSearchParams();
+    if (inv.org_name) params.set('org', inv.org_name);
+    if (inv.org_id) params.set('org_id', inv.org_id);
+    const qs = params.toString();
+    return `${window.location.origin}/register/${inv.token}${qs ? `?${qs}` : ''}`;
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(buildLink());
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <tr>
+      <td style={{ fontWeight: 500, fontSize: '0.85rem' }}>{inv.email}</td>
+      <td style={{ fontSize: '0.85rem' }}>{inv.org_name || '—'}</td>
+      <td>
+        <span style={{
+          padding: '2px 8px',
+          borderRadius: 12,
+          fontSize: '0.72rem',
+          fontWeight: 600,
+          background: inv.role === 'student' ? 'var(--accent-light)' : 'var(--status-completed-bg)',
+          color: inv.role === 'student' ? 'var(--accent-text)' : 'var(--status-completed)',
+        }}>
+          {inv.role}
+        </span>
+      </td>
+      <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{timeFromNow(inv.expires_at)}</td>
+      <td><StatusPill status={inv.status} /></td>
+      <td>
+        {inv.status === 'pending' && inv.token && (
+          <button
+            onClick={handleCopy}
+            title="Copy invitation link"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '3px 10px',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: '1px solid var(--border)',
+              background: copied ? 'var(--status-active-bg)' : 'var(--surface-raised)',
+              color: copied ? 'var(--status-active)' : 'var(--text-muted)',
+              transition: 'all 0.15s',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {copied ? (
+              <>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Copied
+              </>
+            ) : (
+              <>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy URL
+              </>
+            )}
+          </button>
+        )}
+      </td>
+    </tr>
+  );
+}
+
 export default function InvitationCreate() {
   const [orgs, setOrgs] = useState([]);
   const [invitations, setInvitations] = useState([]);
@@ -118,7 +192,9 @@ export default function InvitationCreate() {
       setInvitations(prev => [
         {
           token_id: result.token,
+          token: result.token,
           email: form.email,
+          org_id: form.org_id,
           org_name: orgName,
           role: form.role,
           status: 'pending',
@@ -212,30 +288,14 @@ export default function InvitationCreate() {
                   <th>Role</th>
                   <th>Expires</th>
                   <th>Status</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {invitations.length === 0 ? (
-                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: 32, color: 'var(--text-muted)' }}>No invitations yet</td></tr>
+                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: 32, color: 'var(--text-muted)' }}>No invitations yet</td></tr>
                 ) : invitations.map((inv, i) => (
-                  <tr key={inv.token_id || i}>
-                    <td style={{ fontWeight: 500, fontSize: '0.85rem' }}>{inv.email}</td>
-                    <td style={{ fontSize: '0.85rem' }}>{inv.org_name || '—'}</td>
-                    <td>
-                      <span style={{
-                        padding: '2px 8px',
-                        borderRadius: 12,
-                        fontSize: '0.72rem',
-                        fontWeight: 600,
-                        background: inv.role === 'student' ? 'var(--accent-light)' : 'var(--status-completed-bg)',
-                        color: inv.role === 'student' ? 'var(--accent-text)' : 'var(--status-completed)',
-                      }}>
-                        {inv.role}
-                      </span>
-                    </td>
-                    <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{timeFromNow(inv.expires_at)}</td>
-                    <td><StatusPill status={inv.status} /></td>
-                  </tr>
+                  <InvitationRow key={inv.token_id || i} inv={inv} />
                 ))}
               </tbody>
             </table>
