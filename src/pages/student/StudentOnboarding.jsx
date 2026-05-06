@@ -8,7 +8,8 @@ const STEPS = [
   { n: 1, label: 'Student Info' },
   { n: 2, label: 'Questionnaire' },
   { n: 3, label: 'Parent Info' },
-  { n: 4, label: 'Confirm' },
+  { n: 4, label: 'Account Setup' },
+  { n: 5, label: 'Confirm' },
 ];
 
 function StepProgress({ current }) {
@@ -257,7 +258,110 @@ function Step3({ data, onChange, errors }) {
   );
 }
 
-// ── Step 4: E-Signature + Voice recording ───────────────────
+// ── Step 4: Account Setup ────────────────────────────────────
+function Step4AccountSetup({ studentEmail, parentEmail, passwords, onChange, errors }) {
+  const [showStudentPw, setShowStudentPw] = useState(false);
+  const [showParentPw, setShowParentPw] = useState(false);
+  const [showParentConfirm, setShowParentConfirm] = useState(false);
+
+  const eyeIcon = (show) => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      {show
+        ? <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></>
+        : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>
+      }
+    </svg>
+  );
+
+  return (
+    <div className="animate-in">
+      <h3 style={{ marginBottom: 'var(--space-2)', fontFamily: 'var(--font-serif)' }}>Account Setup</h3>
+      <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-6)', fontSize: '0.875rem' }}>
+        Set login credentials for both the student and parent accounts.
+      </p>
+
+      {/* Student account */}
+      <div style={{ marginBottom: 'var(--space-5)', padding: 'var(--space-5)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', background: 'var(--surface-raised)' }}>
+        <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 'var(--space-4)' }}>
+          Student Account
+        </div>
+        <div className="form-group" style={{ marginBottom: 'var(--space-4)' }}>
+          <label>Email</label>
+          <input type="email" value={studentEmail} readOnly style={{ background: 'var(--content-bg)', color: 'var(--text-muted)', cursor: 'default' }} />
+        </div>
+        <div className="form-group" style={{ marginBottom: errors.student_password ? 'var(--space-1)' : 0 }}>
+          <label>Password *</label>
+          <div style={{ position: 'relative' }}>
+            <input
+              type={showStudentPw ? 'text' : 'password'}
+              value={passwords.student_password}
+              onChange={e => onChange('student_password', e.target.value)}
+              placeholder="At least 8 characters"
+              autoComplete="new-password"
+              className={errors.student_password ? 'error' : ''}
+              style={{ paddingRight: 40 }}
+            />
+            <button type="button" onClick={() => setShowStudentPw(v => !v)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'flex' }}>
+              {eyeIcon(showStudentPw)}
+            </button>
+          </div>
+          {errors.student_password && <div className="form-error">{errors.student_password}</div>}
+        </div>
+      </div>
+
+      {/* Parent account */}
+      <div style={{ padding: 'var(--space-5)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', background: 'var(--surface-raised)' }}>
+        <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 'var(--space-4)' }}>
+          Parent Account
+        </div>
+        <div className="form-group" style={{ marginBottom: 'var(--space-4)' }}>
+          <label>Email</label>
+          <input type="email" value={parentEmail} readOnly style={{ background: 'var(--content-bg)', color: 'var(--text-muted)', cursor: 'default' }} />
+        </div>
+        <div className="form-row">
+          <div className="form-group" style={{ marginBottom: errors.parent_password ? 'var(--space-1)' : 0 }}>
+            <label>Password *</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showParentPw ? 'text' : 'password'}
+                value={passwords.parent_password}
+                onChange={e => onChange('parent_password', e.target.value)}
+                placeholder="At least 8 characters"
+                autoComplete="new-password"
+                className={errors.parent_password ? 'error' : ''}
+                style={{ paddingRight: 40 }}
+              />
+              <button type="button" onClick={() => setShowParentPw(v => !v)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'flex' }}>
+                {eyeIcon(showParentPw)}
+              </button>
+            </div>
+            {errors.parent_password && <div className="form-error">{errors.parent_password}</div>}
+          </div>
+          <div className="form-group" style={{ marginBottom: errors.parent_confirm ? 'var(--space-1)' : 0 }}>
+            <label>Confirm Password *</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showParentConfirm ? 'text' : 'password'}
+                value={passwords.parent_confirm}
+                onChange={e => onChange('parent_confirm', e.target.value)}
+                placeholder="Re-enter password"
+                autoComplete="new-password"
+                className={errors.parent_confirm ? 'error' : ''}
+                style={{ paddingRight: 40 }}
+              />
+              <button type="button" onClick={() => setShowParentConfirm(v => !v)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, display: 'flex' }}>
+                {eyeIcon(showParentConfirm)}
+              </button>
+            </div>
+            {errors.parent_confirm && <div className="form-error">{errors.parent_confirm}</div>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Step 5: E-Signature + Voice recording ───────────────────
 function SignaturePad({ onSign }) {
   const canvasRef = useRef(null);
   const drawing = useRef(false);
@@ -468,7 +572,7 @@ function VoiceRecorder({ onRecorded }) {
   );
 }
 
-function Step4({ bio, parent, onSignature, onVoice }) {
+function Step5({ bio, parent, onSignature, onVoice }) {
   return (
     <div className="animate-in">
       <h3 style={{ marginBottom: 'var(--space-2)', fontFamily: 'var(--font-serif)' }}>Confirm &amp; Sign</h3>
@@ -559,7 +663,7 @@ function SuccessScreen({ studentId, parentId, pdfUrl }) {
       </a>
 
       <div style={{ marginTop: 'var(--space-8)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-        Please save your Student ID and Parent ID. You will receive login instructions by email.
+        Please save your Student ID and Parent ID for your records.
       </div>
     </div>
   );
@@ -587,6 +691,9 @@ export default function StudentOnboarding() {
   const [bio, setBio] = useState(() => loadSaved('bio', {}));
   const [questionnaire, setQuestionnaire] = useState(() => loadSaved('questionnaire', {}));
   const [parent, setParent] = useState(() => loadSaved('parent', {}));
+  const [passwords, setPasswords] = useState({ student_password: '', parent_password: '', parent_confirm: '' });
+  const [pwErrors, setPwErrors] = useState({});
+  const [studentEmail, setStudentEmail] = useState('');
   const [signature, setSignature] = useState(null);
   const [voice, setVoice] = useState(null);
   const [errors, setErrors] = useState({});
@@ -594,19 +701,13 @@ export default function StudentOnboarding() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(null);
 
-  const [authReady, setAuthReady] = useState(() => !!localStorage.getItem('voices_token'));
-  const [inviteForm, setInviteForm] = useState({ password: '', confirm: '' });
-  const [inviteError, setInviteError] = useState('');
-  const [accepting, setAccepting] = useState(false);
-
-  useEffect(() => {
-    if (localStorage.getItem('voices_token')) setAuthReady(true);
-  }, []);
-
   useEffect(() => {
     if (!inviteToken) return;
     validateToken(inviteToken)
-      .then(data => setOrgName(data.org_name || ''))
+      .then(data => {
+        setOrgName(data.org_name || '');
+        setStudentEmail(data.email || '');
+      })
       .catch(() => setTokenError('This invitation link is invalid or has expired.'));
   }, [inviteToken]);
 
@@ -694,26 +795,44 @@ export default function StudentOnboarding() {
     }
 
     if (step === 4) {
+      const e = {};
+      if (!passwords.student_password || passwords.student_password.length < 8)
+        e.student_password = 'Password must be at least 8 characters.';
+      if (!passwords.parent_password || passwords.parent_password.length < 8)
+        e.parent_password = 'Password must be at least 8 characters.';
+      if (passwords.parent_password !== passwords.parent_confirm)
+        e.parent_confirm = 'Passwords do not match.';
+      if (Object.keys(e).length) { setPwErrors(e); return; }
+      setPwErrors({});
+      advanceStep();
+      return;
+    }
+
+    if (step === 5) {
       if (!signature) { setStepError('Parent signature is required.'); return; }
       if (!voice) { setStepError('Voice recording is required.'); return; }
 
       setSubmitting(true);
       try {
+        // 1. Create student account
+        const authData = await registerFromInvite({ token: inviteToken, password: passwords.student_password });
+        localStorage.setItem('voices_token', authData.token);
+        localStorage.setItem('voices_user', JSON.stringify(authData.user));
+
+        // 2. Complete onboarding (includes parent account creation with parent_password)
         const formData = new FormData();
         formData.append('voice', voice, 'consent.webm');
         formData.append('signature_data', signature);
         formData.append('bio', JSON.stringify(bio));
         formData.append('questionnaire', JSON.stringify(questionnaire));
-        formData.append('parent', JSON.stringify(parent));
+        formData.append('parent', JSON.stringify({ ...parent, parent_password: passwords.parent_password }));
         if (inviteToken) formData.append('invite_token', inviteToken);
 
         const { data } = await client.post('/api/onboarding/complete', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
 
-        // Clear saved progress on success
         localStorage.removeItem(storageKey);
-
         setDone({ studentId: data.studentId, parentId: data.parentId, pdfUrl: data.pdfUrl });
       } catch (err) {
         setStepError(err.response?.data?.message || 'Submission failed. Please try again.');
@@ -723,31 +842,6 @@ export default function StudentOnboarding() {
     }
   };
 
-  const handleAcceptInvite = async (e) => {
-    e.preventDefault();
-    setInviteError('');
-    if (!inviteToken) { setInviteError('Missing invitation token.'); return; }
-    if (!inviteForm.password || inviteForm.password.length < 8) {
-      setInviteError('Password must be at least 8 characters.');
-      return;
-    }
-    if (inviteForm.password !== inviteForm.confirm) {
-      setInviteError('Passwords do not match.');
-      return;
-    }
-
-    setAccepting(true);
-    try {
-      const data = await registerFromInvite({ token: inviteToken, password: inviteForm.password });
-      localStorage.setItem('voices_token', data.token);
-      localStorage.setItem('voices_user', JSON.stringify(data.user));
-      setAuthReady(true);
-    } catch (err) {
-      setInviteError(err.response?.data?.message || 'Failed to accept invitation. Please try again.');
-    } finally {
-      setAccepting(false);
-    }
-  };
 
   if (done) return (
     <div style={{ minHeight: '100vh', background: 'var(--content-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -756,59 +850,6 @@ export default function StudentOnboarding() {
       </div>
     </div>
   );
-
-  if (!authReady) {
-    return (
-      <div style={{ minHeight: '100vh', background: 'var(--content-bg)' }}>
-        <div style={{ background: 'var(--sidebar-bg)', padding: 'var(--space-5) var(--space-8)', display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', fontWeight: 600, color: 'oklch(92% 0.02 90)' }}>Voices</div>
-          <div style={{ width: 1, height: 20, background: 'oklch(40% 0.05 155)' }} />
-          <div style={{ fontSize: '0.8rem', color: 'oklch(70% 0.03 90)' }}>Invitation</div>
-        </div>
-
-        <div style={{ maxWidth: 560, margin: '0 auto', padding: 'var(--space-10) var(--space-6)' }}>
-          {tokenError && (
-            <div style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-4) var(--space-5)', background: 'var(--status-urgent-bg)', border: '1px solid var(--status-urgent-border)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--status-urgent)' }}>
-              {tokenError}
-            </div>
-          )}
-          {!!orgName && !tokenError && (
-            <div style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-4) var(--space-5)', background: 'var(--accent-light)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              You're joining <span style={{ fontWeight: 800, color: 'var(--text)' }}>{orgName}</span>
-            </div>
-          )}
-
-          <div className="card" style={{ padding: 'var(--space-8)' }}>
-            <h3 style={{ marginBottom: 'var(--space-2)', fontFamily: 'var(--font-serif)' }}>Create your account</h3>
-            <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-6)', fontSize: '0.875rem' }}>
-              Set a password to start your registration.
-            </p>
-
-            {inviteError && (
-              <div style={{ padding: 'var(--space-3) var(--space-4)', background: 'var(--status-urgent-bg)', border: '1px solid var(--status-urgent-border)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--status-urgent)', marginBottom: 'var(--space-4)' }}>
-                {inviteError}
-              </div>
-            )}
-
-            <form onSubmit={handleAcceptInvite}>
-              <div className="form-group">
-                <label>Password *</label>
-                <input type="password" value={inviteForm.password} onChange={e => setInviteForm(p => ({ ...p, password: e.target.value }))} placeholder="At least 8 characters" autoComplete="new-password" />
-              </div>
-              <div className="form-group">
-                <label>Confirm password *</label>
-                <input type="password" value={inviteForm.confirm} onChange={e => setInviteForm(p => ({ ...p, confirm: e.target.value }))} placeholder="Re-enter password" autoComplete="new-password" />
-              </div>
-              <button className="btn btn-primary" type="submit" disabled={accepting} style={{ width: '100%', justifyContent: 'center' }}>
-                {accepting ? 'Creating account...' : 'Continue'}
-              </button>
-            </form>
-          </div>
-
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--content-bg)' }}>
@@ -821,7 +862,12 @@ export default function StudentOnboarding() {
       <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-10) var(--space-6)' }}>
         <StepProgress current={step} />
 
-        {!!orgName && (
+        {tokenError && (
+          <div style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-4) var(--space-5)', background: 'var(--status-urgent-bg)', border: '1px solid var(--status-urgent-border)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--status-urgent)' }}>
+            {tokenError}
+          </div>
+        )}
+        {!!orgName && !tokenError && (
           <div style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-4) var(--space-5)', background: 'var(--accent-light)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
             Registering for <span style={{ fontWeight: 800, color: 'var(--text)' }}>{orgName}</span>
           </div>
@@ -831,7 +877,8 @@ export default function StudentOnboarding() {
           {step === 1 && <Step1 data={bio} onChange={handleBioChange} errors={errors} />}
           {step === 2 && <Step2 data={questionnaire} onChange={handleQuestionnaireChange} />}
           {step === 3 && <Step3 data={parent} onChange={handleParentChange} errors={errors} />}
-          {step === 4 && <Step4 bio={bio} parent={parent} onSignature={setSignature} onVoice={setVoice} />}
+          {step === 4 && <Step4AccountSetup studentEmail={studentEmail} parentEmail={parent.parent_email || ''} passwords={passwords} onChange={(field, val) => { setPasswords(p => ({ ...p, [field]: val })); setPwErrors(p => ({ ...p, [field]: undefined })); }} errors={pwErrors} />}
+          {step === 5 && <Step5 bio={bio} parent={parent} onSignature={setSignature} onVoice={setVoice} />}
 
           <hr className="divider" />
 
@@ -858,7 +905,7 @@ export default function StudentOnboarding() {
             </button>
 
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Step {step} of 4
+              Step {step} of 5
             </div>
 
             <button className="btn btn-primary" onClick={handleNext} disabled={submitting}>
@@ -867,7 +914,7 @@ export default function StudentOnboarding() {
                   <span style={{ width: 14, height: 14, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
                   Submitting...
                 </>
-              ) : step === 4 ? 'Complete Registration' : (
+              ) : step === 5 ? 'Complete Registration' : (
                 <>
                   Continue
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
