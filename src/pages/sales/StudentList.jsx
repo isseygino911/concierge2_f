@@ -67,6 +67,7 @@ export default function StudentList() {
               <th>Organization</th>
               <th>Grade</th>
               <th style={{ width: 120 }}>Balance</th>
+              <th style={{ width: 100 }}>Intake</th>
               <th style={{ width: 100 }}>Status</th>
               <th style={{ width: 160 }}>Actions</th>
             </tr>
@@ -74,12 +75,12 @@ export default function StudentList() {
           <tbody>
             {loading ? (
               Array.from({ length: 6 }).map((_, i) => (
-                <tr key={i}>{[1,2,3,4,5,6].map(j => (
+                <tr key={i}>{[1,2,3,4,5,6,7].map(j => (
                   <td key={j}><div className="skeleton" style={{ height: 16, width: '70%' }} /></td>
                 ))}</tr>
               ))
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>No students found</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>No students found</td></tr>
             ) : (
               filtered.map(student => (
                 <tr key={student.student_id}>
@@ -109,6 +110,27 @@ export default function StudentList() {
                     }}>
                       ${student.balance?.toLocaleString('en', { minimumFractionDigits: 2 })}
                     </span>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+                      {student.intake_pdf_url ? (
+                        <a href={student.intake_pdf_url} target="_blank" rel="noopener noreferrer" title="Download intake PDF"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent-text)', textDecoration: 'none' }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                          PDF
+                        </a>
+                      ) : null}
+                      {student.intake_voice_url ? (
+                        <a href={student.intake_voice_url} target="_blank" rel="noopener noreferrer" title="Play voice recording"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textDecoration: 'none' }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                          Voice
+                        </a>
+                      ) : null}
+                      {!student.intake_pdf_url && !student.intake_voice_url && (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>—</span>
+                      )}
+                    </div>
                   </td>
                   <td><StatusPill status={student.status} /></td>
                   <td>
