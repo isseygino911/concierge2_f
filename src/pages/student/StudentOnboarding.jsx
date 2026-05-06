@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import client from '../../api/client';
-import { acceptInvitation } from '../../api/auth';
+import { registerFromInvite, validateToken } from '../../api/auth';
 
 // ── Step progress indicator ──────────────────────────────────
 const STEPS = [
@@ -568,9 +568,8 @@ function SuccessScreen({ studentId, parentId, pdfUrl }) {
 // ── Main component ───────────────────────────────────────────
 export default function StudentOnboarding() {
   const { token: inviteToken } = useParams();
-  const [searchParams] = useSearchParams();
-  const orgIdFromLink = searchParams.get('org_id') || searchParams.get('orgId') || '';
-  const orgNameFromLink = searchParams.get('org') || searchParams.get('orgName') || '';
+  const [orgName, setOrgName] = useState('');
+  const [tokenError, setTokenError] = useState('');
 
   // localStorage key scoped to this invitation token
   const storageKey = `voices_onboarding_${inviteToken || 'anon'}`;
@@ -603,6 +602,13 @@ export default function StudentOnboarding() {
   useEffect(() => {
     if (localStorage.getItem('voices_token')) setAuthReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!inviteToken) return;
+    validateToken(inviteToken)
+      .then(data => setOrgName(data.org_name || ''))
+      .catch(() => setTokenError('This invitation link is invalid or has expired.'));
+  }, [inviteToken]);
 
   // Persist form state to localStorage on every change
   const persist = (updates) => {
@@ -699,7 +705,7 @@ export default function StudentOnboarding() {
         formData.append('bio', JSON.stringify(bio));
         formData.append('questionnaire', JSON.stringify(questionnaire));
         formData.append('parent', JSON.stringify(parent));
-        if (orgIdFromLink) formData.append('org_id', orgIdFromLink);
+        if (inviteToken) formData.append('invite_token', inviteToken);
 
         const { data } = await client.post('/api/onboarding/complete', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
@@ -732,7 +738,7 @@ export default function StudentOnboarding() {
 
     setAccepting(true);
     try {
-      const data = await acceptInvitation({ token: inviteToken, password: inviteForm.password });
+      const data = await registerFromInvite({ token: inviteToken, password: inviteForm.password });
       localStorage.setItem('voices_token', data.token);
       localStorage.setItem('voices_user', JSON.stringify(data.user));
       setAuthReady(true);
@@ -761,9 +767,14 @@ export default function StudentOnboarding() {
         </div>
 
         <div style={{ maxWidth: 560, margin: '0 auto', padding: 'var(--space-10) var(--space-6)' }}>
-          {!!orgNameFromLink && (
+          {tokenError && (
+            <div style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-4) var(--space-5)', background: 'var(--status-urgent-bg)', border: '1px solid var(--status-urgent-border)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--status-urgent)' }}>
+              {tokenError}
+            </div>
+          )}
+          {!!orgName && !tokenError && (
             <div style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-4) var(--space-5)', background: 'var(--accent-light)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              You're joining <span style={{ fontWeight: 800, color: 'var(--text)' }}>{orgNameFromLink}</span>
+              You're joining <span style={{ fontWeight: 800, color: 'var(--text)' }}>{orgName}</span>
             </div>
           )}
 
@@ -794,11 +805,6 @@ export default function StudentOnboarding() {
             </form>
           </div>
 
-          {!!orgIdFromLink && (
-            <div style={{ marginTop: 'var(--space-5)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Org ID: <span style={{ fontFamily: 'monospace' }}>{orgIdFromLink}</span>
-            </div>
-          )}
         </div>
       </div>
     );
@@ -815,9 +821,9 @@ export default function StudentOnboarding() {
       <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--space-10) var(--space-6)' }}>
         <StepProgress current={step} />
 
-        {!!orgNameFromLink && (
+        {!!orgName && (
           <div style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-4) var(--space-5)', background: 'var(--accent-light)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Registering for <span style={{ fontWeight: 800, color: 'var(--text)' }}>{orgNameFromLink}</span>
+            Registering for <span style={{ fontWeight: 800, color: 'var(--text)' }}>{orgName}</span>
           </div>
         )}
 

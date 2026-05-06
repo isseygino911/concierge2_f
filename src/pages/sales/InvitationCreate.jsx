@@ -88,13 +88,7 @@ function timeFromNow(dateStr) {
 function InvitationRow({ inv }) {
   const [copied, setCopied] = useState(false);
 
-  const buildLink = () => {
-    const params = new URLSearchParams();
-    if (inv.org_name) params.set('org', inv.org_name);
-    if (inv.org_id) params.set('org_id', inv.org_id);
-    const qs = params.toString();
-    return `${window.location.origin}/register/${inv.token}${qs ? `?${qs}` : ''}`;
-  };
+  const buildLink = () => `${window.location.origin}/register/${inv.token}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(buildLink());
@@ -186,8 +180,8 @@ export default function InvitationCreate() {
     setGenerated(null);
     try {
       const result = await generateInvitation(form.email, form.org_id, form.role);
-      const orgName = orgs.find(o => o.org_id === form.org_id)?.name || '';
-      const link = `${window.location.origin}/register/${result.token}?org=${encodeURIComponent(orgName)}&org_id=${encodeURIComponent(form.org_id)}`;
+      const orgName = orgs.find(o => String(o.org_id) === String(form.org_id))?.name || '';
+      const link = `${window.location.origin}/register/${result.token}`;
       setGenerated({ link, expiresAt: result.expiresAt, orgName });
       setInvitations(prev => [
         {

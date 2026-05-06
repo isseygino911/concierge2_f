@@ -15,7 +15,12 @@ export const createInvitation = async (payload) => {
   return data;
 };
 
-export const acceptInvitation = async (payload) => {
-  const { data } = await client.post('/api/auth/accept-invitation', payload);
+export const registerFromInvite = async (payload) => {
+  const { data } = await client.post('/api/auth/register-from-invite', payload);
+  return data;
+};
+
+export const validateToken = async (token) => {
+  const { data } = await client.get(`/api/auth/validate-token/${token}`);
   return data;
 };
