@@ -10,9 +10,8 @@ export const getUnreadCount = async () => {
   return data.count || 0;
 };
 
-export const markAsRead = async (ids) => {
-  const { data } = await client.patch('/api/notifications/read', { notification_ids: ids });
-  console.log(id)
+export const markAsRead = async (ids, isRead = true) => {
+  const { data } = await client.patch('/api/notifications/read', { notification_ids: ids, is_read: isRead });
   return data;
 };
 

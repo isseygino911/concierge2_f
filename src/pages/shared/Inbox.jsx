@@ -49,14 +49,13 @@ export default function Inbox() {
 
   useEffect(() => {
     getNotifications().then(setNotifications).finally(() => setLoading(false));
-    console.log(notifications);
   }, []);
 
-  const handleMarkRead = async (notif) => {
-    if (notif.is_read) return;
-    await markAsRead([notif.notification_id]);
+  const handleToggleRead = async (notif) => {
+    const newIsRead = !notif.is_read;
+    await markAsRead([notif.notification_id], newIsRead);
     setNotifications(prev => prev.map(n =>
-      n.notification_id === notif.notification_id ? { ...n, is_read: true } : n
+      n.notification_id === notif.notification_id ? { ...n, is_read: newIsRead } : n
     ));
   };
 
@@ -70,14 +69,16 @@ export default function Inbox() {
     }
   };
 
-  const filtered = notifications.filter(n =>
-    filter === 'all' || (filter === 'unread' && !n.is_read)
-  );
+  const filtered = notifications.filter(n => {
+    if (filter === 'unread') return !n.is_read;
+    if (filter === 'read') return n.is_read;
+    return true;
+  });
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
-    <div className="animate-in" style={{ maxWidth: 720 }}>
+    <div className="animate-in" style={{ maxWidth: 720, margin: '0 auto' }}>
       <div className="page-header">
         <div className="page-header-text">
           <h2>Inbox</h2>
@@ -92,7 +93,7 @@ export default function Inbox() {
 
       {/* Filter */}
       <div className="tabs" style={{ marginBottom: 'var(--space-6)' }}>
-        {[['all', 'All'], ['unread', 'Unread']].map(([val, label]) => (
+        {[['all', 'All'], ['unread', 'Unread'], ['read', 'Read']].map(([val, label]) => (
           <button key={val} className={`tab${filter === val ? ' active' : ''}`} onClick={() => setFilter(val)}>
             {label}
             {val === 'unread' && unreadCount > 0 && ` (${unreadCount})`}
@@ -112,14 +113,14 @@ export default function Inbox() {
           {filtered.map((notif, i) => (
             <div
               key={notif.notification_id}
-              onClick={() => handleMarkRead(notif)}
+              onClick={() => handleToggleRead(notif)}
               style={{
                 display: 'flex',
                 gap: 'var(--space-4)',
                 padding: 'var(--space-5)',
                 background: notif.is_read ? 'var(--surface-raised)' : 'var(--content-bg-elevated)',
                 borderBottom: '1px solid var(--border)',
-                cursor: notif.is_read ? 'default' : 'pointer',
+                cursor: 'pointer',
                 transition: 'background var(--transition-fast)',
                 borderRadius: i === 0 ? 'var(--radius-lg) var(--radius-lg) 0 0' : (i === filtered.length - 1 ? '0 0 var(--radius-lg) var(--radius-lg)' : 0),
                 borderLeft: notif.is_read ? '3px solid transparent' : `3px solid ${typeColor[notif.type] || 'var(--accent)'}`,
