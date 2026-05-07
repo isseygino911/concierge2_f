@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, getRoleHomePath } from '../context/AuthContext';
 
 export default function Login() {
@@ -200,7 +200,14 @@ export default function Login() {
             </button>
           </form>
 
-          <div style={{ marginTop: 32, padding: 20, background: 'var(--surface-raised)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+          <p style={{ marginTop: 24, textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            Need a sales account?{' '}
+            <Link to="/signup" style={{ color: 'var(--accent-text)', textDecoration: 'none', fontWeight: 500 }}>
+              Create one
+            </Link>
+          </p>
+
+          <div style={{ marginTop: 16, padding: 20, background: 'var(--surface-raised)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
             <strong style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Demo accounts</strong>
             <div style={{ display: 'grid', gap: 4 }}>
               {[

@@ -6,6 +6,7 @@ import Layout from './components/layout/Layout';
 
 // Public pages
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import StudentOnboarding from './pages/student/StudentOnboarding';
 import NotFound from './pages/shared/NotFound';
 
@@ -73,6 +74,7 @@ function AppRoutes() {
     <Routes>
       {/* Public routes */}
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
       <Route path="/register/:token" element={<StudentOnboarding />} />
 
       {/* Root → dashboard redirect */}
