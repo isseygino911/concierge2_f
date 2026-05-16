@@ -47,9 +47,8 @@ export default function Signup() {
         firstName: form.firstName,
         lastName: form.lastName,
       });
-      // Auto-login using returned token
-      localStorage.setItem('token', result.token);
-      localStorage.setItem('user', JSON.stringify(result.user));
+      localStorage.setItem('voices_token', result.token);
+      localStorage.setItem('voices_user', JSON.stringify(result.user));
       window.location.href = '/sales';
     } catch (err) {
       setApiError(err?.response?.data?.message || 'Failed to create account. Please try again.');
