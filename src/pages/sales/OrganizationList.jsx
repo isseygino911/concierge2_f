@@ -108,8 +108,8 @@ export default function OrganizationList() {
 
   const handleSave = async (form) => {
     if (form.org_id) {
-      await updateOrganization(form.org_id, form);
-      setOrgs(prev => prev.map(o => o.org_id === form.org_id ? { ...o, ...form } : o));
+      const updatedOrg = await updateOrganization(form.org_id, form);
+      setOrgs(prev => prev.map(o => o.org_id === form.org_id ? { ...o, ...updatedOrg } : o));
     } else {
       const newOrg = await createOrganization(form);
       setOrgs(prev => [{ ...newOrg, student_count: 0 }, ...prev]);

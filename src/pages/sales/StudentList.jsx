@@ -26,9 +26,9 @@ export default function StudentList() {
     const newStatus = student.status === 'active' ? 'inactive' : 'active';
     setToggling(student.student_id);
     try {
-      await apiUpdateStatus(student.student_id, newStatus);
+      const updatedStudent = await apiUpdateStatus(student.student_id, newStatus);
       setStudents(prev => prev.map(s =>
-        s.student_id === student.student_id ? { ...s, status: newStatus } : s
+        s.student_id === student.student_id ? { ...s, ...updatedStudent } : s
       ));
     } finally {
       setToggling(null);
