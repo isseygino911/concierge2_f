@@ -196,16 +196,16 @@ export default function StudentPortal() {
   const [emergencyError, setEmergencyError] = useState('');
 
   useEffect(() => {
-    Promise.all([
+    Promise.allSettled([
       getStudentBalance(),
       getMyTickets(),
       getAllCategories(),
       getEmergencyContacts(),
     ]).then(([b, t, c, ec]) => {
-      setBalance(b);
-      setTickets(t);
-      setCategories(c);
-      setContacts(ec);
+      if (b.status === 'fulfilled') setBalance(b.value);
+      if (t.status === 'fulfilled') setTickets(t.value);
+      if (c.status === 'fulfilled') setCategories(c.value);
+      if (ec.status === 'fulfilled') setContacts(ec.value);
     }).finally(() => setLoading(false));
   }, []);
 
@@ -291,7 +291,7 @@ export default function StudentPortal() {
                   <div className="skeleton" style={{ height: 40, width: 120 }} />
                 ) : (
                   <div style={{ fontFamily: 'var(--font-serif)', fontSize: '2.4rem', fontWeight: 600, color: balance?.balance < 500 ? 'var(--status-urgent)' : 'var(--status-active)', lineHeight: 1 }}>
-                    ${balance?.balance?.toLocaleString('en', { minimumFractionDigits: 2 })}
+                    {Number(balance?.balance ?? 0).toLocaleString('en', { minimumFractionDigits: 2 })} <span style={{ fontSize: '1.2rem', fontWeight: 400, opacity: 0.7 }}>{balance?.currency ?? 'USD'}</span>
                   </div>
                 )}
               </div>

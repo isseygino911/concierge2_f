@@ -11,7 +11,7 @@ export default function ParentPortal() {
   const [loading, setLoading] = useState(true);
   const [activeChild, setActiveChild] = useState(0);
   const [showDepositForm, setShowDepositForm] = useState(false);
-  const [form, setForm] = useState({ amount: '', currency: 'CAD', note: '' });
+  const [form, setForm] = useState({ amount: '', currency: 'USD', note: '' });
   const [file, setFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -60,7 +60,7 @@ export default function ParentPortal() {
       const fresh = await getParentDeposits().catch(() => deposits);
       setDeposits(fresh);
       setSuccess(true);
-      setForm({ amount: '', currency: 'CAD', note: '' });
+      setForm({ amount: '', currency: 'USD', note: '' });
       setFile(null);
       setTimeout(() => { setSuccess(false); setShowDepositForm(false); }, 3000);
     } catch (err) {
@@ -114,7 +114,7 @@ export default function ParentPortal() {
                     ['Student ID', child?.external_student_id || '—'],
                     ['Program', child?.intended_program || '—'],
                     ['Tickets Filed', child?.ticket_count ?? 0],
-                    ['Balance', `$${Number(child?.balance ?? 0).toLocaleString()} CAD`],
+                    ['Balance', `${Number(child?.balance ?? 0).toLocaleString('en', { minimumFractionDigits: 2 })} ${child?.currency ?? 'USD'}`],
                   ].map(([label, val]) => (
                     <div key={label}>
                       <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 4 }}>{label}</div>
@@ -219,7 +219,7 @@ export default function ParentPortal() {
                     </div>
                     <div className="form-group">
                       <label>Currency *</label>
-                      <select value={form.currency} onChange={e => setForm(p => ({ ...p, currency: e.target.value }))}>
+                      <select value={form.currency} onChange={e => setForm(p => ({ ...p, currency: e.target.value }))} disabled>
                         {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
