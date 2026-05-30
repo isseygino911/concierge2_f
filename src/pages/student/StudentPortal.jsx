@@ -216,6 +216,9 @@ export default function StudentPortal() {
       await createEmergencyTicket({ description: 'Emergency quick-action ticket — student requires immediate help.' });
       setEmergencySuccess(true);
       setShowEmergencyConfirm(false);
+      // Refresh ticket list so the new emergency ticket appears immediately
+      const fresh = await getMyTickets().catch(() => null);
+      if (fresh) setTickets(fresh);
     } catch (err) {
       setEmergencyError(err.response?.data?.error || 'Failed to file emergency ticket. Please try again.');
       setShowEmergencyConfirm(false);
