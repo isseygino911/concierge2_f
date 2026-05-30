@@ -124,57 +124,103 @@ function Step1({ data, onChange, errors }) {
 }
 
 // ── Step 2: Questionnaire ────────────────────────────────────
-const QUESTIONS = [
-  { key: 'medical_conditions', label: 'Do you have any known medical conditions or chronic illnesses?', type: 'textarea', placeholder: 'e.g. asthma, diabetes, none — please be specific' },
-  { key: 'allergies', label: 'Please list any allergies (food, medication, environmental)', type: 'textarea', placeholder: 'e.g. peanuts, penicillin, pollen, or "none"' },
-  { key: 'dietary_restrictions', label: 'Do you have any dietary restrictions or preferences?', type: 'select', options: ['None', 'Vegetarian', 'Vegan', 'Halal', 'Kosher', 'Gluten-free', 'Other'] },
-  { key: 'dietary_restrictions_other', label: 'If other, please specify', type: 'text', placeholder: 'Your dietary requirement' },
-  { key: 'medications', label: 'Are you currently taking any prescription medications?', type: 'textarea', placeholder: 'List medication name and dosage, or "none"' },
-  { key: 'emergency_medical_info', label: 'Is there any other medical information your host family and school should know?', type: 'textarea', placeholder: 'e.g. carries an EpiPen, uses insulin, or "none"' },
-  { key: 'learning_preferences', label: 'How do you learn best?', type: 'select', options: ['Visual (charts, diagrams)', 'Auditory (listening, discussion)', 'Reading/Writing', 'Hands-on activities', 'Mixed / Flexible'] },
-  { key: 'hobbies_interests', label: 'What are your main hobbies and interests?', type: 'textarea', placeholder: 'e.g. piano, basketball, reading, coding' },
-  { key: 'english_proficiency', label: 'How would you rate your English proficiency?', type: 'select', options: ['Beginner', 'Elementary', 'Intermediate', 'Upper Intermediate', 'Advanced', 'Native/Near-native'] },
-  { key: 'special_needs', label: 'Do you require any special accommodations or support?', type: 'textarea', placeholder: 'e.g. additional ESL support, mobility accommodations, or "none"' },
+// Matches overseas-study-survey-Gino-Liu-4-21-2026.pdf — 22 questions across 4 sections
+const QUESTION_SECTIONS = [
+  {
+    section: '第一部分 · Basic Information',
+    questions: [
+      { key: 'relationship', label: '与学生的关系 (Relationship)', type: 'select', options: ['Father', 'Mother', 'Legal Guardian', 'Grandparent', 'Other'] },
+      { key: 'study_stage', label: '留学阶段 (Study Stage)', type: 'select', options: ['High School', 'Undergraduate', 'Postgraduate', 'Language Course', 'Other'] },
+      { key: 'target_country', label: '目标国家/地区 (Target Country)', type: 'text', placeholder: 'e.g. Canada, United Kingdom, Australia' },
+      { key: 'expected_time', label: '预计出国时间 (Expected Time)', type: 'text', placeholder: 'e.g. September 2026' },
+    ],
+  },
+  {
+    section: '第二部分 · Overseas Daily Life Needs',
+    questions: [
+      { key: 'accommodation_preference', label: '住宿偏好 (Accommodation Preference)', type: 'select', options: ['Homestay', 'Student Residence / Dorm', 'Private Rental', 'No Preference'] },
+      { key: 'life_support_needs', label: '生活支持需求 (Life Support Needs)', type: 'textarea', placeholder: 'e.g. cooking assistance, airport pickup, local SIM card setup' },
+      { key: 'daily_challenges', label: '日常生活挑战 (Daily Challenges)', type: 'textarea', placeholder: 'e.g. language barrier, homesickness, managing finances' },
+      { key: 'driving_ability', label: '驾驶能力 (Driving Ability)', type: 'select', options: ['No licence', 'Have licence but limited experience', 'Experienced driver'] },
+      { key: 'communication_method', label: '沟通方式 (Communication Method)', type: 'select', options: ['WeChat', 'WhatsApp', 'Email', 'Phone Call', 'Multiple / Flexible'] },
+    ],
+  },
+  {
+    section: '第三部分 · Risk Protection & Safety Concerns',
+    questions: [
+      { key: 'safety_concerns', label: '安全担忧 (Safety Concerns)', type: 'textarea', placeholder: 'e.g. neighbourhood safety, political climate, personal health risks' },
+      { key: 'insurance_priorities', label: '保险优先考虑 (Insurance Priorities)', type: 'select', options: ['Medical / Health', 'Travel & Cancellation', 'Personal Liability', 'Comprehensive Package', 'Unsure'] },
+      { key: 'additional_coverage', label: '额外保障 (Additional Coverage)', type: 'textarea', placeholder: 'e.g. dental, vision, mental health — or "none"' },
+      { key: 'safety_resources', label: '安全资源 (Safety Resources)', type: 'textarea', placeholder: 'e.g. local emergency contacts, embassy registration, campus security' },
+      { key: 'budget_planning', label: '预算规划 (Budget Planning)', type: 'select', options: ['Under CAD 20,000/yr', 'CAD 20,000–35,000/yr', 'CAD 35,000–50,000/yr', 'Over CAD 50,000/yr', 'Prefer not to say'] },
+      { key: 'support_needs', label: '支持需求 (Support Needs)', type: 'textarea', placeholder: 'e.g. mental health support, tutoring, cultural adaptation assistance' },
+      { key: 'english_level', label: '英语水平 (English Level)', type: 'select', options: ['Beginner', 'Elementary', 'Intermediate', 'Upper Intermediate', 'Advanced', 'Native / Near-native'] },
+      { key: 'help_seeking', label: '求助能力 (Help Seeking)', type: 'select', options: ['Very comfortable asking for help', 'Somewhat comfortable', 'Uncomfortable — prefers to handle alone', 'Unsure'] },
+      { key: 'adventurous', label: '冒险精神 (Adventurous)', type: 'select', options: ['Very adventurous — loves trying new things', 'Moderately adventurous', 'Cautious — prefers familiar environments', 'Unsure'] },
+      { key: 'stress_response', label: '压力应对 (Stress Response)', type: 'select', options: ['Talks to family / friends', 'Seeks professional support', 'Exercises / physical activity', 'Internalises — handles alone', 'Other'] },
+    ],
+  },
+  {
+    section: '第四部分 · Information Access & Payment Preferences',
+    questions: [
+      { key: 'information_channels', label: '信息获取渠道 (Information Channels)', type: 'select', options: ['WeChat / Social Media', 'Agency Recommendation', 'School / Teacher Referral', 'Online Search', 'Friend / Family Referral', 'Other'] },
+      { key: 'payment_willingness', label: '付费意愿 (Payment Willingness)', type: 'select', options: ['Willing to pay for premium concierge services', 'Interested but budget-conscious', 'Prefer included/bundled services only', 'Unsure'] },
+      { key: 'additional_comments', label: '其他建议 (Additional Comments)', type: 'textarea', placeholder: 'Any other information you would like us to know' },
+    ],
+  },
 ];
 
 function Step2({ data, onChange }) {
+  let globalIndex = 0;
   return (
     <div className="animate-in">
-      <h3 style={{ marginBottom: 'var(--space-2)', fontFamily: 'var(--font-serif)' }}>Personal Questionnaire</h3>
+      <h3 style={{ marginBottom: 'var(--space-2)', fontFamily: 'var(--font-serif)' }}>出国留学家庭需求与保障调查问卷</h3>
       <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--space-6)', fontSize: '0.875rem' }}>
-        This information helps us provide the best possible support throughout your program. All responses are confidential.
+        Overseas Study Family Needs and Protection Survey — all responses are confidential and help us provide the best possible support.
       </p>
 
-      {QUESTIONS.map((q, i) => (
-        <div key={q.key} className="form-group">
-          <label style={{ textTransform: 'none', fontSize: '0.85rem', fontWeight: 600, letterSpacing: 0 }}>
-            <span style={{ color: 'var(--text-muted)', marginRight: 8, fontFamily: 'var(--font-serif)', fontSize: '0.9rem' }}>{i + 1}.</span>
-            {q.label}
-          </label>
-          {q.type === 'textarea' ? (
-            <textarea
-              rows={3}
-              placeholder={q.placeholder}
-              value={data[q.key] || ''}
-              onChange={e => onChange(q.key, e.target.value)}
-              style={{ resize: 'vertical', minHeight: 80 }}
-            />
-          ) : q.type === 'select' ? (
-            <select
-              value={data[q.key] || ''}
-              onChange={e => onChange(q.key, e.target.value)}
-            >
-              <option value="">Select an option...</option>
-              {q.options.map(opt => <option key={opt}>{opt}</option>)}
-            </select>
-          ) : (
-            <input
-              type="text"
-              placeholder={q.placeholder}
-              value={data[q.key] || ''}
-              onChange={e => onChange(q.key, e.target.value)}
-            />
-          )}
+      {QUESTION_SECTIONS.map((section) => (
+        <div key={section.section} style={{ marginBottom: 'var(--space-8)' }}>
+          <div style={{
+            fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+            color: 'var(--accent-text)', borderBottom: '1px solid var(--border)', paddingBottom: 'var(--space-2)',
+            marginBottom: 'var(--space-5)',
+          }}>
+            {section.section}
+          </div>
+
+          {section.questions.map((q) => {
+            const index = ++globalIndex;
+            return (
+              <div key={q.key} className="form-group">
+                <label style={{ textTransform: 'none', fontSize: '0.85rem', fontWeight: 600, letterSpacing: 0 }}>
+                  <span style={{ color: 'var(--text-muted)', marginRight: 8, fontFamily: 'var(--font-serif)', fontSize: '0.9rem' }}>{index}.</span>
+                  {q.label}
+                </label>
+                {q.type === 'textarea' ? (
+                  <textarea
+                    rows={3}
+                    placeholder={q.placeholder}
+                    value={data[q.key] || ''}
+                    onChange={e => onChange(q.key, e.target.value)}
+                    style={{ resize: 'vertical', minHeight: 80 }}
+                  />
+                ) : q.type === 'select' ? (
+                  <select value={data[q.key] || ''} onChange={e => onChange(q.key, e.target.value)}>
+                    <option value="">Select an option...</option>
+                    {q.options.map(opt => <option key={opt}>{opt}</option>)}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    placeholder={q.placeholder}
+                    value={data[q.key] || ''}
+                    onChange={e => onChange(q.key, e.target.value)}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
       ))}
     </div>
