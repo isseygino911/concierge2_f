@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import StudentOnboarding from './pages/student/StudentOnboarding';
 import OrgRegister from './pages/organization/OrgRegister';
+import ForgotPassword from './pages/ForgotPassword';
 import NotFound from './pages/shared/NotFound';
 
 // Sales pages
@@ -78,6 +79,7 @@ function AppRoutes() {
       <Route path="/signup" element={<Signup />} />
       <Route path="/register/:token" element={<StudentOnboarding />} />
       <Route path="/org-register/:token" element={<OrgRegister />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       {/* Root → dashboard redirect */}
       <Route path="/" element={<DashboardRedirect />} />

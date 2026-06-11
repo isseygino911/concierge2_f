@@ -24,3 +24,8 @@ export const validateToken = async (token) => {
   const { data } = await client.get(`/api/auth/validate-token/${token}`);
   return data;
 };
+
+export const resetPasswordVerify = async (payload) => {
+  const { data } = await client.post('/api/auth/reset-password-verify', payload);
+  return data;
+};

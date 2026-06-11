@@ -200,7 +200,13 @@ export default function Login() {
             </button>
           </form>
 
-          <p style={{ marginTop: 24, textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+          <p style={{ marginTop: 16, textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            <Link to="/forgot-password" style={{ color: 'var(--accent-text)', textDecoration: 'none', fontWeight: 500 }}>
+              Forgot your password?
+            </Link>
+          </p>
+
+          <p style={{ marginTop: 8, textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
             Need a sales account?{' '}
             <Link to="/signup" style={{ color: 'var(--accent-text)', textDecoration: 'none', fontWeight: 500 }}>
               Create one
