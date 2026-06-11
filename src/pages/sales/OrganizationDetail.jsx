@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOrganizations, updateOrganization } from '../../api/organizations';
-import { getAllStudents } from '../../api/students';
+import { getAllStudents, generateOrgInvitation } from '../../api/students';
 import StatusPill from '../../components/ui/StatusPill';
 import Button from '../../components/ui/Button';
 
@@ -14,6 +14,8 @@ export default function OrganizationDetail() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
+  const [inviteState, setInviteState] = useState(null); // null | 'sending' | { link } | 'error'
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const numId = parseInt(id, 10);
@@ -42,6 +44,24 @@ export default function OrganizationDetail() {
     }
   };
 
+  const handleGenerateInvite = async () => {
+    setInviteState('sending');
+    try {
+      const result = await generateOrgInvitation(org.contact_email, org.org_id);
+      setInviteState({ link: result.link });
+    } catch {
+      setInviteState('error');
+    }
+  };
+
+  const handleCopy = () => {
+    if (inviteState?.link) {
+      navigator.clipboard.writeText(inviteState.link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   if (loading) return <div className="loading-state"><div className="loading-spinner" /><span>Loading...</span></div>;
   if (!org) return <div style={{ padding: 40, color: 'var(--text-muted)' }}>Organization not found.</div>;
 
@@ -59,13 +79,47 @@ export default function OrganizationDetail() {
           <h2>{org.name}</h2>
           <p>{[org.city, org.province].filter(Boolean).join(', ')} · ID {org.org_id}</p>
         </div>
-        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
           <StatusPill status={org.status} />
           <Button variant="secondary" onClick={() => setEditing(e => !e)}>
             {editing ? 'Cancel' : 'Edit'}
           </Button>
+          <Button variant="ghost" onClick={handleGenerateInvite} disabled={inviteState === 'sending'}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            {inviteState === 'sending' ? 'Generating…' : 'Invite Link'}
+          </Button>
         </div>
       </div>
+
+      {inviteState && inviteState !== 'sending' && (
+        <div style={{
+          background: inviteState === 'error' ? 'var(--status-rejected-bg, #fff0f0)' : 'var(--status-active-bg)',
+          border: `1px solid ${inviteState === 'error' ? 'var(--status-rejected-border, #ffcccc)' : 'var(--status-active-border)'}`,
+          borderRadius: 'var(--radius-md)',
+          padding: 'var(--space-4)',
+          marginBottom: 'var(--space-5)',
+          animation: 'fadeSlideIn 0.25s both',
+        }}>
+          {inviteState === 'error' ? (
+            <div style={{ fontSize: '0.85rem', color: 'var(--status-rejected, #c00)' }}>Failed to generate invite link. Check that the org has a contact email set.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--status-active)' }}>Invite Link Ready</div>
+              <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+                <input
+                  readOnly
+                  value={inviteState.link}
+                  style={{ flex: 1, fontFamily: 'monospace', fontSize: '0.78rem', background: 'var(--surface-raised)', borderColor: 'var(--status-active-border)' }}
+                />
+                <Button variant="primary" size="sm" onClick={handleCopy}>
+                  {copied ? 'Copied' : 'Copy'}
+                </Button>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Send this to <strong>{org.contact_email}</strong> — expires in 7 days.</div>
+            </div>
+          )}
+        </div>
+      )}
 
       {editing && (
         <div className="card" style={{ marginBottom: 'var(--space-6)', animation: 'fadeSlideIn 0.25s both' }}>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { getOrganizations, createOrganization, updateOrganization } from '../../api/organizations';
+import { generateOrgInvitation } from '../../api/students';
 import StatusPill from '../../components/ui/StatusPill';
 import Button from '../../components/ui/Button';
 
@@ -9,6 +10,8 @@ function OrgPanel({ org, onClose, onSave }) {
   const [form, setForm] = useState(org || { name: '', city: '', province: '', address: '', contact_email: '', contact_phone: '' });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  const [inviteState, setInviteState] = useState(null); // null | 'sending' | { link, expiresAt } | 'error'
+  const [copied, setCopied] = useState(false);
   const isNew = !org;
 
   const validate = () => {
@@ -23,10 +26,35 @@ function OrgPanel({ org, onClose, onSave }) {
     if (Object.keys(e).length) { setErrors(e); return; }
     setSaving(true);
     try {
-      await onSave(form);
-      onClose();
+      const saved = await onSave(form);
+      if (isNew && saved) {
+        // Stay open so sales can send the invite
+        setForm(p => ({ ...p, _savedOrgId: saved.org_id }));
+      } else {
+        onClose();
+      }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const activeOrgId = form._savedOrgId || form.org_id;
+
+  const handleSendInvite = async () => {
+    setInviteState('sending');
+    try {
+      const result = await generateOrgInvitation(form.contact_email, activeOrgId);
+      setInviteState({ link: result.link, expiresAt: result.expiresAt });
+    } catch {
+      setInviteState('error');
+    }
+  };
+
+  const handleCopy = () => {
+    if (inviteState?.link) {
+      navigator.clipboard.writeText(inviteState.link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -78,11 +106,55 @@ function OrgPanel({ org, onClose, onSave }) {
             </div>
           </div>
         </div>
-        <div className="panel-footer">
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button variant="primary" loading={saving} onClick={handleSave}>
-            {isNew ? 'Create Organization' : 'Save Changes'}
-          </Button>
+        <div className="panel-footer" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 'var(--space-3)' }}>
+          {/* Invite section — shown after new org is saved, OR always for existing orgs */}
+          {activeOrgId && (
+            <div style={{ background: 'var(--status-active-bg)', border: '1px solid var(--status-active-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-4)', marginBottom: 'var(--space-2)' }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--status-active)', marginBottom: 'var(--space-3)' }}>
+                {form._savedOrgId ? 'Organization Created' : 'Invite Organization Admin'}
+              </div>
+              {!inviteState && (
+                <>
+                  <div style={{ fontSize: '0.83rem', color: 'var(--text-muted)', marginBottom: 'var(--space-3)' }}>
+                    Send an invite link to <strong>{form.contact_email}</strong> so they can set their password.
+                  </div>
+                  <Button variant="primary" size="sm" style={{ width: '100%', justifyContent: 'center' }} onClick={handleSendInvite}>
+                    Generate Invite Link
+                  </Button>
+                </>
+              )}
+              {inviteState === 'sending' && (
+                <div style={{ fontSize: '0.83rem', color: 'var(--text-muted)' }}>Generating invite link…</div>
+              )}
+              {inviteState === 'error' && (
+                <div style={{ fontSize: '0.83rem', color: 'var(--status-rejected, #c00)' }}>Failed to generate invite. Try again from the Invitations page.</div>
+              )}
+              {inviteState && inviteState.link && (
+                <>
+                  <div style={{ fontSize: '0.83rem', color: 'var(--text-muted)', marginBottom: 'var(--space-2)' }}>Copy and send this link to the org admin:</div>
+                  <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+                    <input
+                      readOnly
+                      value={inviteState.link}
+                      style={{ flex: 1, fontFamily: 'monospace', fontSize: '0.72rem', background: 'var(--surface-raised)', borderColor: 'var(--status-active-border)' }}
+                    />
+                    <Button variant="primary" size="sm" onClick={handleCopy}>
+                      {copied ? 'Copied' : 'Copy'}
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end' }}>
+            <Button variant="secondary" onClick={onClose}>{form._savedOrgId ? 'Done' : 'Cancel'}</Button>
+            {!form._savedOrgId && (
+              <Button variant="primary" loading={saving} onClick={handleSave}>
+                {isNew ? 'Create Organization' : 'Save Changes'}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </>,
@@ -110,9 +182,11 @@ export default function OrganizationList() {
     if (form.org_id) {
       const updatedOrg = await updateOrganization(form.org_id, form);
       setOrgs(prev => prev.map(o => o.org_id === form.org_id ? { ...o, ...updatedOrg } : o));
+      return null;
     } else {
       const newOrg = await createOrganization(form);
       setOrgs(prev => [{ ...newOrg, student_count: 0 }, ...prev]);
+      return newOrg;
     }
   };
 

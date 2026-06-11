@@ -47,3 +47,8 @@ export const generateInvitation = async (email, orgId, role = 'student') => {
     link: `${window.location.origin}/register/${data.token}`,
   };
 };
+
+export const generateOrgInvitation = async (email, orgId) => {
+  const { data } = await client.post('/api/auth/invite', { email, org_id: orgId, role_id: ROLE_ID_MAP.organization });
+  return { ...data, link: `${window.location.origin}/org-register/${data.token}` };
+};
