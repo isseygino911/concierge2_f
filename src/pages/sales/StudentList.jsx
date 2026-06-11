@@ -26,9 +26,9 @@ export default function StudentList() {
     const newStatus = student.status === 'active' ? 'inactive' : 'active';
     setToggling(student.student_id);
     try {
-      const updatedStudent = await apiUpdateStatus(student.student_id, newStatus);
+      await apiUpdateStatus(student.student_id, newStatus);
       setStudents(prev => prev.map(s =>
-        s.student_id === student.student_id ? { ...s, ...updatedStudent } : s
+        s.student_id === student.student_id ? { ...s, status: newStatus } : s
       ));
     } finally {
       setToggling(null);
@@ -37,6 +37,37 @@ export default function StudentList() {
 
   return (
     <div className="animate-in">
+      {confirmDelete && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }} onClick={() => setConfirmDelete(null)}>
+          <div style={{
+            background: 'var(--surface-raised)', borderRadius: 'var(--radius-lg)',
+            padding: 'var(--space-8)', maxWidth: 420, width: '90%',
+            boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)',
+          }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 var(--space-2)', color: 'var(--text-primary)' }}>Delete Student</h3>
+            <p style={{ margin: '0 0 var(--space-6)', color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+              This will permanently delete <strong>{confirmDelete.first_name} {confirmDelete.last_name}</strong>, their account,
+              all deposits, tickets, intake records, and S3 files. If they are the only child linked to a parent, the parent account will also be removed.
+              <br /><br />This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'flex-end' }}>
+              <button className="btn btn-secondary btn-sm" onClick={() => setConfirmDelete(null)}>Cancel</button>
+              <button
+                className="btn btn-sm"
+                style={{ background: 'var(--status-urgent)', color: '#fff', border: 'none' }}
+                disabled={deleting === confirmDelete.student_id}
+                onClick={() => handleDelete(confirmDelete)}
+              >
+                {deleting === confirmDelete.student_id ? 'Deleting…' : 'Delete permanently'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="page-header">
         <div className="page-header-text">
           <h2>Students</h2>
@@ -134,7 +165,7 @@ export default function StudentList() {
                   </td>
                   <td><StatusPill status={student.status} /></td>
                   <td>
-                    <div className="table-actions">
+                    <div className="table-actions" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
                       <label className="toggle-wrapper" style={{ cursor: 'pointer' }}>
                         <div className="toggle">
                           <input
@@ -150,6 +181,21 @@ export default function StudentList() {
                           {toggling === student.student_id ? 'Saving...' : (student.status === 'active' ? 'Active' : 'Inactive')}
                         </span>
                       </label>
+                      <button
+                        title="Delete student"
+                        disabled={deleting === student.student_id}
+                        onClick={() => setConfirmDelete(student)}
+                        style={{
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          color: 'var(--status-urgent)', opacity: deleting === student.student_id ? 0.4 : 0.7,
+                          padding: '4px', borderRadius: 'var(--radius-sm)',
+                          display: 'flex', alignItems: 'center',
+                        }}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                        </svg>
+                      </button>
                     </div>
                   </td>
                 </tr>
