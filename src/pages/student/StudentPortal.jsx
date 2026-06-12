@@ -160,22 +160,39 @@ function TicketCreatePanel({ onClose, onCreated, categories }) {
 }
 
 function EmergencyConfirmBanner({ onConfirm, onCancel, loading }) {
+  const [description, setDescription] = useState('');
+  const [error, setError] = useState('');
+
+  const handleConfirm = () => {
+    if (!description.trim()) { setError('Please describe the emergency.'); return; }
+    onConfirm(description.trim());
+  };
+
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
       background: 'var(--status-urgent-bg)',
       border: '2px solid var(--status-urgent-border)',
       padding: 'var(--space-5) var(--space-8)',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
     }}>
-      <div>
-        <div style={{ fontWeight: 700, color: 'var(--status-urgent)', marginBottom: 4 }}>File an emergency ticket?</div>
-        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>This will immediately alert our team for urgent assistance.</div>
-      </div>
-      <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-        <Button variant="secondary" onClick={onCancel} disabled={loading}>Cancel</Button>
-        <Button variant="danger" loading={loading} onClick={onConfirm}>Confirm Emergency</Button>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-6)' }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, color: 'var(--status-urgent)', marginBottom: 4 }}>File an emergency ticket?</div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 'var(--space-3)' }}>This will immediately alert our team for urgent assistance.</div>
+          <textarea
+            rows={2}
+            placeholder="Describe the emergency..."
+            value={description}
+            onChange={e => { setDescription(e.target.value); setError(''); }}
+            style={{ width: '100%', resize: 'none', fontSize: '0.875rem', borderColor: error ? 'var(--status-urgent)' : undefined }}
+          />
+          {error && <div style={{ fontSize: '0.78rem', color: 'var(--status-urgent)', marginTop: 4 }}>{error}</div>}
+        </div>
+        <div style={{ display: 'flex', gap: 'var(--space-3)', flexShrink: 0, paddingTop: 4 }}>
+          <Button variant="secondary" onClick={onCancel} disabled={loading}>Cancel</Button>
+          <Button variant="danger" loading={loading} onClick={handleConfirm}>Confirm Emergency</Button>
+        </div>
       </div>
     </div>
   );
@@ -209,11 +226,11 @@ export default function StudentPortal() {
     }).finally(() => setLoading(false));
   }, []);
 
-  const handleEmergencyConfirm = async () => {
+  const handleEmergencyConfirm = async (description) => {
     setEmergencyLoading(true);
     setEmergencyError('');
     try {
-      await createEmergencyTicket({ description: 'Emergency quick-action ticket — student requires immediate help.' });
+      await createEmergencyTicket({ description });
       setEmergencySuccess(true);
       setShowEmergencyConfirm(false);
       // Refresh ticket list so the new emergency ticket appears immediately
@@ -244,7 +261,7 @@ export default function StudentPortal() {
     <div className="animate-in">
       {showEmergencyConfirm && (
         <EmergencyConfirmBanner
-          onConfirm={handleEmergencyConfirm}
+          onConfirm={(desc) => handleEmergencyConfirm(desc)}
           onCancel={() => setShowEmergencyConfirm(false)}
           loading={emergencyLoading}
         />
