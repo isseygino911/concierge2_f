@@ -287,18 +287,15 @@ export default function StudentPortal() {
         <div>
           {/* Balance */}
           <div className="card" style={{ marginBottom: 'var(--space-5)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
-              <div>
-                <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 4 }}>Account Balance</div>
-                {loading ? (
-                  <div className="skeleton" style={{ height: 40, width: 120 }} />
-                ) : (
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '2.4rem', fontWeight: 600, color: balance?.balance < 500 ? 'var(--status-urgent)' : 'var(--status-active)', lineHeight: 1 }}>
-                    {Number(balance?.balance ?? 0).toLocaleString('en', { minimumFractionDigits: 2 })} <span style={{ fontSize: '1.2rem', fontWeight: 400, opacity: 0.7 }}>{balance?.currency ?? 'USD'}</span>
-                  </div>
-                )}
-              </div>
-              <Button variant="primary" onClick={() => navigate('/parent')}>Request Top-up</Button>
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 4 }}>Account Balance</div>
+              {loading ? (
+                <div className="skeleton" style={{ height: 40, width: 120 }} />
+              ) : (
+                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '2.4rem', fontWeight: 600, color: balance?.balance < 500 ? 'var(--status-urgent)' : 'var(--status-active)', lineHeight: 1 }}>
+                  {Number(balance?.balance ?? 0).toLocaleString('en', { minimumFractionDigits: 2 })} <span style={{ fontSize: '1.2rem', fontWeight: 400, opacity: 0.7 }}>{balance?.currency ?? 'USD'}</span>
+                </div>
+              )}
             </div>
             {balance?.balance < 500 && (
               <div style={{ padding: 'var(--space-3) var(--space-4)', background: 'var(--status-urgent-bg)', border: '1px solid var(--status-urgent-border)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--status-urgent)' }}>

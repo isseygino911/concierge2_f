@@ -5,7 +5,7 @@ import Button from '../../components/ui/Button';
 export default function CategoryManagement() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: '', cost: '', description: '' });
+  const [form, setForm] = useState({ name: '', description: '' });
   const [editId, setEditId] = useState(null);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -27,16 +27,16 @@ export default function CategoryManagement() {
     if (Object.keys(e).length) { setErrors(e); return; }
     setSaving(true);
     try {
-      const payload = { category_name: form.name, cost: Number(form.cost) || 0, description: form.description };
+      const payload = { category_name: form.name, description: form.description };
       if (editId) {
         await updateCategory(editId, payload);
-        setCategories(prev => prev.map(c => c.category_id === editId ? { ...c, category_name: form.name, cost: Number(form.cost) } : c));
+        setCategories(prev => prev.map(c => c.category_id === editId ? { ...c, category_name: form.name, description: form.description } : c));
         setEditId(null);
       } else {
         const result = await createCategory(payload);
-        setCategories(prev => [...prev, { category_name: form.name, category_id: result.categoryId || Date.now(), cost: Number(form.cost) || 0, description: form.description }]);
+        setCategories(prev => [...prev, { category_name: form.name, category_id: result.categoryId || Date.now(), description: form.description }]);
       }
-      setForm({ name: '', cost: '', description: '' });
+      setForm({ name: '', description: '' });
       setErrors({});
     } finally {
       setSaving(false);
@@ -45,7 +45,7 @@ export default function CategoryManagement() {
 
   const handleEdit = (cat) => {
     setEditId(cat.category_id);
-    setForm({ name: cat.category_name, cost: String(cat.cost || ''), description: cat.description || '' });
+    setForm({ name: cat.category_name, description: cat.description || '' });
   };
 
   const handleDelete = async (id) => {
@@ -64,7 +64,7 @@ export default function CategoryManagement() {
       <div className="page-header">
         <div className="page-header-text">
           <h2>Ticket Categories</h2>
-          <p>Manage service categories and their associated costs</p>
+          <p>Manage service categories</p>
         </div>
       </div>
 
@@ -76,7 +76,6 @@ export default function CategoryManagement() {
               <tr>
                 <th>Category</th>
                 <th>Description</th>
-                <th style={{ width: 100 }}>Cost (CAD)</th>
                 <th style={{ width: 140 }}>Actions</th>
               </tr>
             </thead>
@@ -92,7 +91,6 @@ export default function CategoryManagement() {
                   <tr key={cat.category_id}>
                     <td style={{ fontWeight: 500 }}>{cat.category_name}</td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{cat.description || '—'}</td>
-                    <td style={{ fontWeight: 600 }}>{cat.cost > 0 ? `$${cat.cost}` : 'Free'}</td>
                     <td>
                       <div className="table-actions">
                         <Button size="sm" variant="secondary" onClick={() => handleEdit(cat)}>Edit</Button>
@@ -126,19 +124,13 @@ export default function CategoryManagement() {
           </div>
 
           <div className="form-group">
-            <label>Service Cost (CAD)</label>
-            <input type="number" min="0" placeholder="0" value={form.cost} onChange={e => setForm(p => ({ ...p, cost: e.target.value }))} />
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>Leave 0 for no charge</div>
-          </div>
-
-          <div className="form-group">
             <label>Description</label>
             <textarea rows={3} placeholder="Describe what this category covers..." value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} style={{ resize: 'none' }} />
           </div>
 
           <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
             {editId && (
-              <Button variant="ghost" onClick={() => { setEditId(null); setForm({ name: '', cost: '', description: '' }); setErrors({}); }}>
+              <Button variant="ghost" onClick={() => { setEditId(null); setForm({ name: '', description: '' }); setErrors({}); }}>
                 Cancel
               </Button>
             )}
