@@ -29,3 +29,8 @@ export const resetPasswordVerify = async (payload) => {
   const { data } = await client.post('/api/auth/reset-password-verify', payload);
   return data;
 };
+
+export const getAssignableUsers = async () => {
+  const { data } = await client.get('/api/auth/assignable-users');
+  return data;
+};

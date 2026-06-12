@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getAdminQueue, getMyTickets, getComments, addComment, updateTicketStatus, assignTicket } from '../../api/tickets';
+import { getAssignableUsers } from '../../api/auth';
 import StatusPill from '../../components/ui/StatusPill';
 import Button from '../../components/ui/Button';
 
@@ -48,6 +49,9 @@ export default function TicketDetail() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [commentError, setCommentError] = useState('');
   const commentEndRef = useRef(null);
+  const [assignableUsers, setAssignableUsers] = useState([]);
+  const [selectedAssignees, setSelectedAssignees] = useState([]);
+  const [assigning, setAssigning] = useState(false);
 
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
   const backPath = isAdmin ? '/admin' : '/student';
@@ -60,9 +64,14 @@ export default function TicketDetail() {
       if (found) {
         setTicket(found);
         setSelectedStatus(found.status || '');
+        const pre = [];
+        if (found.assigned_admin_id) pre.push(found.assigned_admin_id);
+        if (found.assigned_vendor_id) pre.push(found.assigned_vendor_id);
+        setSelectedAssignees(pre);
       }
     });
     getComments(id).then(setComments);
+    if (isAdmin) getAssignableUsers().then(setAssignableUsers).catch(() => {});
   }, [id, isAdmin, ticketId]);
 
   useEffect(() => {
@@ -100,10 +109,32 @@ export default function TicketDetail() {
     }
   };
 
-  const handleAssign = async (adminId) => {
-    if (!adminId) return;
-    await assignTicket(ticket.ticket_id, adminId);
-    setTicket(t => ({ ...t, assigned_admin_id: Number(adminId) }));
+  const handleAssign = async () => {
+    setAssigning(true);
+    try {
+      const adminUser = assignableUsers.find(u => selectedAssignees.includes(u.user_id) && u.role === 'admin');
+      const vendorUser = assignableUsers.find(u => selectedAssignees.includes(u.user_id) && u.role === 'vendor');
+      const adminId = adminUser?.user_id || null;
+      const vendorId = vendorUser?.user_id || null;
+      await assignTicket(ticket.ticket_id, adminId, vendorId);
+      setTicket(t => ({ ...t, assigned_admin_id: adminId, assigned_vendor_id: vendorId }));
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+  const toggleAssignee = (userId) => {
+    const user = assignableUsers.find(u => u.user_id === userId);
+    if (!user) return;
+    setSelectedAssignees(prev => {
+      if (prev.includes(userId)) return prev.filter(id => id !== userId);
+      // Only one admin and one vendor allowed (schema constraint)
+      const filtered = prev.filter(id => {
+        const u = assignableUsers.find(u => u.user_id === id);
+        return u?.role !== user.role;
+      });
+      return [...filtered, userId];
+    });
   };
 
   if (!ticket) return <div className="loading-state"><div className="loading-spinner" /><span>Loading...</span></div>;
@@ -209,6 +240,25 @@ export default function TicketDetail() {
                 <div style={{ fontSize: '0.875rem', fontWeight: 500 }}>{value || '—'}</div>
               </div>
             ))}
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>Assigned To</div>
+              {(() => {
+                const assigned = assignableUsers.filter(u =>
+                  u.user_id === ticket.assigned_admin_id || u.user_id === ticket.assigned_vendor_id
+                );
+                if (assigned.length === 0) return <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Unassigned</div>;
+                return assigned.map(u => (
+                  <div key={u.user_id} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <span style={{
+                      fontSize: '0.7rem', padding: '1px 7px', borderRadius: 10, fontWeight: 600,
+                      background: u.role === 'admin' ? 'var(--status-active-bg)' : 'var(--status-pending-bg)',
+                      color: u.role === 'admin' ? 'var(--status-active)' : 'var(--status-pending)',
+                    }}>{u.role}</span>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{u.name}</span>
+                  </div>
+                ));
+              })()}
+            </div>
           </div>
 
           {isAdmin && (
@@ -229,22 +279,46 @@ export default function TicketDetail() {
                 </div>
               </div>
               <div className="form-group">
-                <label>Assign Admin (by user ID)</label>
-                <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                  <input
-                    type="number"
-                    placeholder="Admin user ID"
-                    defaultValue={ticket.assigned_admin_id || ''}
-                    id="assign-admin-input"
-                    style={{ flex: 1 }}
-                  />
-                  <Button size="sm" variant="secondary" onClick={() => {
-                    const val = document.getElementById('assign-admin-input').value;
-                    if (val) handleAssign(val);
-                  }}>
-                    Assign
-                  </Button>
+                <label>Assign To</label>
+                <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: 'var(--space-2)' }}>
+                  {assignableUsers.length === 0 ? (
+                    <div style={{ padding: '10px 12px', fontSize: '0.83rem', color: 'var(--text-muted)' }}>No admins or vendors available</div>
+                  ) : (
+                    assignableUsers.map(u => {
+                      const selected = selectedAssignees.includes(u.user_id);
+                      return (
+                        <div
+                          key={u.user_id}
+                          onClick={() => toggleAssignee(u.user_id)}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
+                            cursor: 'pointer', borderBottom: '1px solid var(--border)',
+                            background: selected ? 'var(--status-active-bg)' : 'transparent',
+                            transition: 'background 0.12s',
+                          }}
+                        >
+                          <div style={{
+                            width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                            border: `2px solid ${selected ? 'var(--status-active)' : 'var(--border)'}`,
+                            background: selected ? 'var(--status-active)' : 'transparent',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            {selected && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                          </div>
+                          <span style={{ fontSize: '0.875rem', fontWeight: selected ? 600 : 400, flex: 1 }}>{u.name}</span>
+                          <span style={{
+                            fontSize: '0.68rem', padding: '1px 7px', borderRadius: 10, fontWeight: 600,
+                            background: u.role === 'admin' ? 'var(--status-active-bg)' : 'var(--status-pending-bg)',
+                            color: u.role === 'admin' ? 'var(--status-active)' : 'var(--status-pending)',
+                          }}>{u.role}</span>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
+                <Button size="sm" variant="secondary" style={{ width: '100%', justifyContent: 'center' }} loading={assigning} onClick={handleAssign}>
+                  Save Assignment
+                </Button>
               </div>
             </div>
           )}

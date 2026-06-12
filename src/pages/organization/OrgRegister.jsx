@@ -63,7 +63,7 @@ export default function OrgRegister() {
         <div style={{ fontSize: '1.5rem', fontFamily: 'Playfair Display, serif', fontWeight: 700, color: 'oklch(28% 0.08 155)', letterSpacing: '-0.02em' }}>
           VS Concierge
         </div>
-        <div style={{ fontSize: '0.8rem', color: 'oklch(50% 0.02 90)', marginTop: 4 }}>Organization Portal</div>
+        <div style={{ fontSize: '0.8rem', color: 'oklch(50% 0.02 90)', marginTop: 4 }}>Account Activation</div>
       </div>
 
       <div className="card" style={{ width: '100%', maxWidth: 420 }}>
@@ -89,7 +89,10 @@ export default function OrgRegister() {
                 Set Your Password
               </h2>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                Welcome to <strong style={{ color: 'oklch(18% 0.02 240)' }}>{tokenData.org_name}</strong>. Create a password for <strong style={{ color: 'oklch(18% 0.02 240)' }}>{tokenData.email}</strong>.
+                {tokenData.org_name
+                  ? <>Welcome to <strong style={{ color: 'oklch(18% 0.02 240)' }}>{tokenData.org_name}</strong>. Create a password for <strong style={{ color: 'oklch(18% 0.02 240)' }}>{tokenData.email}</strong>.</>
+                  : <>Create a password for <strong style={{ color: 'oklch(18% 0.02 240)' }}>{tokenData.email}</strong>.</>
+                }
               </div>
             </div>
 
@@ -151,7 +154,7 @@ export default function OrgRegister() {
               Account Activated
             </div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.75rem', lineHeight: 1.6 }}>
-              Your password has been set. You can now log in to access the organization portal.
+              Your password has been set. You can now log in to your account.
             </div>
             <button
               onClick={() => navigate('/login')}

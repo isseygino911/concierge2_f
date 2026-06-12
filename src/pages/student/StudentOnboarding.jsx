@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import { registerFromInvite, validateToken } from '../../api/auth';
 
@@ -718,6 +718,7 @@ function SuccessScreen({ studentId, parentId, pdfUrl }) {
 // ── Main component ───────────────────────────────────────────
 export default function StudentOnboarding() {
   const { token: inviteToken } = useParams();
+  const navigate = useNavigate();
   const [orgName, setOrgName] = useState('');
   const [tokenError, setTokenError] = useState('');
 
@@ -751,6 +752,11 @@ export default function StudentOnboarding() {
     if (!inviteToken) return;
     validateToken(inviteToken)
       .then(data => {
+        const nonStudentRoles = ['admin', 'super_admin', 'vendor', 'organization', 'sales'];
+        if (nonStudentRoles.includes(data.role_name)) {
+          navigate(`/org-register/${inviteToken}`, { replace: true });
+          return;
+        }
         setOrgName(data.org_name || '');
         setStudentEmail(data.email || '');
       })
